@@ -29,7 +29,7 @@ class Enigma:
             if c not in self.hash_map:
                 encrypted_message.append(c)
             else:
-                value = ((2 * self.wheels[0] * self.wheels[1] * self.wheels[2]) % 26 + self.wheels[0])
+                value = (((2 * self.wheels[0]) - self.wheels[1] + self.wheels[2]) % 26)
                 i = self.hash_map[c]
                 if value != 0:
                     i += value
@@ -153,12 +153,12 @@ def main():
         ciphertext = enigma.encrypt(plaintext)
 
         if output_path:
-            # Write to output file
             with open(output_path, 'w', encoding='utf-8') as output_file:
                 output_file.write(ciphertext)
         else:
-            # Print to standard output
             print(ciphertext)
 
     except (JSONFileException, FileNotFoundError, PermissionError):
         print_error_and_exit()
+if __name__ == "__main__":
+    main()
