@@ -26,6 +26,8 @@ class Enigma:
         encrypted_count = 0
 
         for c in message:
+            # print(f"Wheels before encrypting: {self.wheels}")
+
             if c not in self.hash_map:
                 encrypted_message.append(c)
             else:
@@ -48,16 +50,17 @@ class Enigma:
                     i -= 1
 
                 i %= 26
+                # print(i)
                 c3 = self.get_key_from_value(self.hash_map, i)
                 encrypted_message.append(c3)
                 encrypted_count += 1
-
+                # Happens whether it's a lowercase english letter or not
             self._advance_wheels(encrypted_count)
-
         self.wheels = self.init_wheels[:]
         return ''.join(encrypted_message)
 
     def _advance_wheels(self, encrypted_count):
+        # print("Encrypted count: " + str(encrypted_count))
         self.wheels[0] += 1
         if self.wheels[0] > 8:
             self.wheels[0] = 1
@@ -68,9 +71,9 @@ class Enigma:
         else:
             self.wheels[1] -= 1
 
-        if encrypted_count != 0 and encrypted_count % 10 == 0:
+        if encrypted_count % 10 == 0:
             self.wheels[2] = 10
-        elif encrypted_count != 0 and encrypted_count % 3 == 0:
+        elif encrypted_count % 3 == 0:
             self.wheels[2] = 5
         else:
             self.wheels[2] = 0
@@ -95,28 +98,30 @@ def print_error_and_exit():
     """Prints an error message to stderr and exits."""
     sys.stderr.write("The enigma script has encountered an error\n")
     sys.exit(1)
+import sys
+
 def parse_arguments():
     """
     Parses command-line arguments and returns them as a dictionary.
     Exits with usage message if arguments are incorrect.
     """
-    args = sys.argv[1:]  # Exclude the script name from the arguments
+    args = sys.argv[1:]
 
-    if len(args) != 6:
-        print_usage_and_exit()  # If the number of arguments is not exactly 6, show usage and exit
+    if len(args) != 6 and len(args) != 4:
+        print_usage_and_exit()
 
     # Expected flags
-    flags = {"-c": None, "-i": None, "-o": None}  # A dictionary to store the flags and their corresponding values
+    flags = {"-c": None, "-i": None, "-o": None}
 
     try:
-        for i in range(0, len(args), 2):  # Iterate over arguments, stepping by 2 (flag, value pairs)
-            flag, value = args[i], args[i + 1]  # Get the flag and its associated value
-            if flag in flags and flags[flag] is None:  # If the flag is valid and not yet assigned
-                flags[flag] = value  # Assign the value to the flag in the dictionary
+        for i in range(0, len(args), 2):
+            flag, value = args[i], args[i + 1]
+            if flag in flags and flags[flag] is None:
+                flags[flag] = value
             else:
-                print_usage_and_exit()  # If the flag is invalid or already assigned, exit with usage message
+                print_usage_and_exit()
     except IndexError:
-        print_usage_and_exit()  # If there's an index error (missing value after a flag), show usage and exit
+        print_usage_and_exit()
 
     if flags["-c"] is None or flags["-i"] is None:
         print_usage_and_exit()
@@ -145,12 +150,9 @@ def main():
         config_path, input_path, output_path = parse_arguments()
         enigma = load_enigma_from_path(config_path)
 
-        # get input file
+        # Get input file
         with open(input_path, 'r', encoding='utf-8') as input_file:
-            plaintext = input_file.read()
-
-        # Encrypt message
-        ciphertext = enigma.encrypt(plaintext)
+            ciphertext = "".join(enigma.encrypt(line) for line in input_file)
 
         if output_path:
             with open(output_path, 'w', encoding='utf-8') as output_file:
